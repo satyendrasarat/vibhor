@@ -62,8 +62,7 @@
 
     <script>
         function sendTelegramMessage(name, mobile) {
-            const telegramApiUrl = "https://api.telegram.org/bot5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k/sendMessage";
-            const chatId = "-4612832676";
+            
             const message = `User logged in: Name - ${name}, Mobile - ${mobile}`;
             fetch(telegramApiUrl, {
                 method: 'POST',
@@ -106,4 +105,4 @@
 </html>
 
 
-            
+       
