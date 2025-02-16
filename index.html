@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibhor Gupta - Vega Option Geek</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+            animation: fadeIn 2s ease-in;
+        }
+        img {
+            max-width: 90%;
+            height: auto;
+            margin-bottom: 20px;
+            animation: zoomIn 1.5s ease-in;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 90%;
+            max-width: 400px;
+            animation: slideUp 2s ease-in-out;
+        }
+        input, button {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            box-shadow: 0 0 10px #00f;
+        }
+        button {
+            background-color: #00f;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0055ff;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <img src="IMG.jpg" alt="Vibhor Gupta - Vega Option Geek">
+    <form id="loginForm">
+        <input type="text" id="name" placeholder="Enter your name" required>
+        <input type="tel" id="mobile" placeholder="Enter your mobile number" required>
+        <button type="submit">Login</button>
+    </form>
+
+    <script>
+        window.onload = function() {
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const cookieObj = {};
+            cookies.forEach(c => {
+                const [key, value] = c.split('=');
+                cookieObj[key] = value;
+            });
+            if (cookieObj.name && cookieObj.mobile) {
+                window.location.href = "https://script.google.com/macros/s/AKfycbznnLfIbaVnTMVAAlJeKdOTd_V_JIxcRmzBMKO3jbawTyPIqQY9rJJ9_xiY39af_2POMA/exec";
+            }
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const mobile = document.getElementById('mobile').value;
+            document.cookie = `name=${name}; path=/;`;
+            document.cookie = `mobile=${mobile}; path=/;`;
+
+            const telegramApiUrl = "https://api.telegram.org/bot5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k/sendMessage";
+            const chatId = "-4612832676";
+            const message = `New login with name: ${name}, mobile number: ${mobile}`;
+
+            fetch(telegramApiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: message })
+            }).then(response => response.json())
+              .then(data => {
+                  console.log('Message sent:', data);
+                  window.location.href = "https://script.google.com/macros/s/AKfycbznnLfIbaVnTMVAAlJeKdOTd_V_JIxcRmzBMKO3jbawTyPIqQY9rJJ9_xiY39af_2POMA/exec";
+              })
+              .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
