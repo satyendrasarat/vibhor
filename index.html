@@ -11,15 +11,11 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #000;
+            background: url('IMG.jpg') no-repeat center center/cover;
             flex-direction: column;
             color: white;
             font-family: Arial, sans-serif;
-        }
-        img {
-            max-width: 90%;
-            height: auto;
-            margin-bottom: 20px;
+            text-align: center;
         }
         form {
             display: flex;
@@ -27,6 +23,10 @@
             gap: 15px;
             width: 90%;
             max-width: 400px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2);
         }
         input, button, select {
             padding: 12px;
@@ -40,10 +40,20 @@
             color: #fff;
             cursor: pointer;
         }
+        .info {
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffcc00;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
-    <img src="IMG.jpg" alt="Vibhor Gupta - Vega Option Geek">
+    <div class="info">For real-time alerts of signals contact: 7011847629</div>
+    <div class="info">Fully automated trading of signals available with Google Sheet</div>
     <form id="loginForm">
         <input type="text" id="name" placeholder="Enter your name" required>
         <input type="tel" id="mobile" placeholder="Enter your mobile number" required>
