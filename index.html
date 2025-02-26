@@ -28,7 +28,7 @@
             width: 90%;
             max-width: 400px;
         }
-        input, button {
+        input, button, select {
             padding: 12px;
             font-size: 16px;
             border-radius: 8px;
@@ -47,6 +47,11 @@
     <form id="loginForm">
         <input type="text" id="name" placeholder="Enter your name" required>
         <input type="tel" id="mobile" placeholder="Enter your mobile number" required>
+        <select id="redirectChoice" required>
+            <option value="" disabled selected>Select Algorithm</option>
+            <option value="https://script.google.com/macros/s/AKfycbx44vCkUNX6OE_oxLfOzb7SHktYxaMrjtblqx9Ny8FYUnriXvnXSU6A2XbXrt7zmcjULg/exec">Nifty Algorithm</option>
+            <option value="https://script.google.com/macros/s/AKfycbyS5dwIlCQ7PjO46o6GbeNHDDplcbp05D-bnA3AuzzNYib3Dr6YWNS1sbXAHwDSDo_8/exec">BankNifty Algorithm</option>
+        </select>
         <button type="submit">Login</button>
     </form>
 
@@ -62,33 +67,22 @@
             }).catch(error => console.error('Error sending Telegram message:', error));
         }
 
-        function redirectToGoogleScript() {
-            const redirectUrl = "https://script.google.com/macros/s/AKfycbznnLfIbaVnTMVAAlJeKdOTd_V_JIxcRmzBMKO3jbawTyPIqQY9rJJ9_xiY39af_2POMA/exec";
-            window.location.href = redirectUrl;
-        }
-
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const name = document.getElementById('name').value;
             const mobile = document.getElementById('mobile').value;
+            const redirectUrl = document.getElementById('redirectChoice').value;
+            
+            if (!redirectUrl) {
+                alert("Please select an algorithm to proceed.");
+                return;
+            }
+            
             const expires = new Date(Date.now() + 86400000).toUTCString();
             document.cookie = `name=${name}; path=/; expires=${expires}`;
             document.cookie = `mobile=${mobile}; path=/; expires=${expires}`;
             sendTelegramMessage(name, mobile);
-            redirectToGoogleScript();
-        });
-
-        window.addEventListener('load', function() {
-            const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-                const [key, value] = cookie.trim().split('=');
-                acc[key] = value;
-                return acc;
-            }, {});
-
-            if (cookies.name && cookies.mobile) {
-                sendTelegramMessage(cookies.name, cookies.mobile);
-                redirectToGoogleScript();
-            }
+            window.location.href = redirectUrl;
         });
     </script>
 </body>
