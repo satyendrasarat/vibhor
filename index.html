@@ -3,97 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibhor Gupta - Vega Option Geek</title>
+    <title>Multi-Strike Candle Watch</title>
     <style>
         body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background: url('IMG.jpg') no-repeat center center/cover;
-            flex-direction: column;
-            color: white;
             font-family: Arial, sans-serif;
             text-align: center;
         }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 90%;
-            max-width: 400px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
         }
-        input, button, select {
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
         }
-        button {
-            background-color: #00f;
-            color: #fff;
-            cursor: pointer;
+        th {
+            background-color: #f4f4f4;
         }
-        .info {
-            margin-bottom: 20px;
-            font-size: 18px;
+        .ltp {
             font-weight: bold;
-            color: #ffcc00;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 8px;
+            transition: color 0.3s;
         }
+        .high-alert { color: green; font-weight: bold; }
+        .low-alert { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="info">For real-time alerts of signals contact: 7011847629</div>
-    <div class="info">Fully automated trading of signals available with Google Sheet</div>
-    <form id="loginForm">
-        <input type="text" id="name" placeholder="Enter your name" required>
-        <input type="tel" id="mobile" placeholder="Enter your mobile number" required>
-        <select id="redirectChoice" required>
-            <option value="" disabled selected>Select Algorithm</option>
-            <option value="https://script.google.com/macros/s/AKfycbx44vCkUNX6OE_oxLfOzb7SHktYxaMrjtblqx9Ny8FYUnriXvnXSU6A2XbXrt7zmcjULg/exec">Nifty Algorithm</option>
-            <option value="https://script.google.com/macros/s/AKfycbyS5dwIlCQ7PjO46o6GbeNHDDplcbp05D-bnA3AuzzNYib3Dr6YWNS1sbXAHwDSDo_8/exec">BankNifty Algorithm</option>
-        </select>
-        <button type="submit">Login</button>
-    </form>
+
+    <h2>Multi-Strike Candle Watch</h2>
+
+    <label for="comparePeriods">Compare LTP with last: </label>
+    <select id="comparePeriods">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="15">15</option>
+    </select> periods
+
+    <table>
+        <thead>
+            <tr>
+                <th>Strike</th>
+                <th>Option Type</th>
+                <th>Fetch</th>
+                <th>Prev Highs</th>
+                <th>Prev Lows</th>
+                <th>Latest LTP</th>
+                <th>Prev Time</th>
+                <th>Latest Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="row1"></tr>
+            <tr id="row2"></tr>
+            <tr id="row3"></tr>
+            <tr id="row4"></tr>
+        </tbody>
+    </table>
 
     <script>
-        function sendTelegramMessage(name, mobile) {
-            const telegramApiUrl = "https://api.telegram.org/bot5511964084:AAHV7mNKO35XLcNcEpnt4Pm_bfWF7yNag4k/sendMessage";
-            const chatId = "-4612832676";
-            const message = `User logged in: Name - ${name}, Mobile - ${mobile}`;
-            fetch(telegramApiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: message })
-            }).catch(error => console.error('Error sending Telegram message:', error));
+        function createDropdown(id, min, max, step = 50) {
+            let select = document.createElement("select");
+            select.id = id;
+            for (let val = min; val <= max; val += step) {
+                let option = document.createElement("option");
+                option.value = val;
+                option.textContent = val;
+                select.appendChild(option);
+            }
+            return select;
         }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const mobile = document.getElementById('mobile').value;
-            const redirectUrl = document.getElementById('redirectChoice').value;
-            
-            if (!redirectUrl) {
-                alert("Please select an algorithm to proceed.");
-                return;
+        function createTableRow(rowId, index) {
+            let row = document.getElementById(rowId);
+            row.innerHTML = `
+                <td id="strikePrice${index}"></td>
+                <td>
+                    <select id="option${index}">
+                        <option value="CE">CE</option>
+                        <option value="PE">PE</option>
+                    </select>
+                </td>
+                <td>
+                    <button onclick="updateAPI(${index})">Fetch</button>
+                </td>
+                <td id="prevHigh${index}">-</td>
+                <td id="prevLow${index}">-</td>
+                <td id="ltp${index}" class="ltp">-</td>
+                <td id="prevTime${index}">-</td>
+                <td id="latestTime${index}">-</td>
+            `;
+            let strikeDropdown = createDropdown(`strike${index}`, 22000, 23000);
+            row.children[0].appendChild(strikeDropdown);
+        }
+
+        let intervals = {};
+
+        function updateAPI(panel) {
+            let strike = document.getElementById("strike" + panel).value;
+            let optionType = document.getElementById("option" + panel).value;
+            let apiUrl = `https://groww.in/v1/api/stocks_fo_data/v1/charting_service/chart/exchange/NSE/segment/FNO/NIFTY25APR${strike}${optionType}/daily?intervalInMinutes=1`;
+
+            document.getElementById("strikePrice" + panel).textContent = strike;
+
+            fetchData(panel, apiUrl);
+
+            if (intervals[panel]) clearInterval(intervals[panel]);
+            intervals[panel] = setInterval(() => fetchData(panel, apiUrl), 1000); // Faster 1-second refresh
+        }
+
+        async function fetchData(panel, apiUrl) {
+            try {
+                let response = await fetch(apiUrl);
+                let data = await response.json();
+
+                let candles = data.candles;
+                let compareCount = parseInt(document.getElementById("comparePeriods").value);
+                if (candles.length < compareCount + 1) return;
+
+                let prevCandles = candles.slice(-compareCount - 1, -1);
+                let latestCandle = candles[candles.length - 1];
+
+                let prevHighs = prevCandles.map(c => c[2]); // Get all previous highs
+                let prevLows = prevCandles.map(c => c[3]); // Get all previous lows
+                let highestHigh = Math.max(...prevHighs);
+                let lowestLow = Math.min(...prevLows);
+                let latestLTP = latestCandle[4];
+
+                let prevTime = new Date(prevCandles[prevCandles.length - 1][0] * 1000).toLocaleTimeString();
+                let latestTime = new Date(latestCandle[0] * 1000).toLocaleTimeString();
+
+                document.getElementById("prevHigh" + panel).textContent = prevHighs.join(", ");
+                document.getElementById("prevLow" + panel).textContent = prevLows.join(", ");
+                document.getElementById("ltp" + panel).textContent = latestLTP;
+                document.getElementById("prevTime" + panel).textContent = prevTime;
+                document.getElementById("latestTime" + panel).textContent = latestTime;
+
+                let ltpElement = document.getElementById("ltp" + panel);
+                ltpElement.classList.remove("high-alert", "low-alert");
+
+                if (latestLTP >= highestHigh) {
+                    ltpElement.classList.add("high-alert"); // Green if touching high
+                } else if (latestLTP <= lowestLow) {
+                    ltpElement.classList.add("low-alert"); // Red if touching low
+                }
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
             }
-            
-            const expires = new Date(Date.now() + 86400000).toUTCString();
-            document.cookie = `name=${name}; path=/; expires=${expires}`;
-            document.cookie = `mobile=${mobile}; path=/; expires=${expires}`;
-            sendTelegramMessage(name, mobile);
-            window.location.href = redirectUrl;
-        });
+        }
+
+        for (let i = 1; i <= 4; i++) {
+            createTableRow("row" + i, i);
+        }
     </script>
+
 </body>
 </html>
